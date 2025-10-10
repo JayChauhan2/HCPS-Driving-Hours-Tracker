@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Row, Rows, Table } from 'react-native-table-component';
 
 export default function Index() {
@@ -41,7 +41,7 @@ export default function Index() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
 
       <Text style={styles.title}>Driving Hours Tracker</Text>
       <View style={styles.startHolder}>
@@ -51,21 +51,28 @@ export default function Index() {
           </Text>
         </TouchableOpacity>
       </View>
-      <Text>Edit app/index.tsx to edit this screen.</Text>
+      <Text style={styles.tableHeader}>My Activity</Text>
       <View style={styles.tableContainer}>
-        <Table borderStyle={{ borderWidth: 1, borderColor: '#C1C0B9'}}></Table>
-        <Row data={tableHead} style={styles.head} textStyle={styles.text} />
+        <Table></Table>
+        <Row data={tableHead} style={styles.head} textStyle={styles.headText} />
         <Rows data={tableData} textStyle={styles.text} />
       </View>
-
-    </View>
+    <View style={styles.bottomSpacer}></View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-
-    tableContainer: {
-    marginTop: 30,
+  bottomSpacer: {
+    marginBottom: 5,
+  },
+  tableHeader: {
+    marginTop: 60,
+    fontFamily: "Helvetica",
+    fontSize: 21,
+  },
+  tableContainer: {
+    marginTop: 15,
     padding: 16,
     backgroundColor: '#fff',
     width: '90%',
@@ -78,7 +85,14 @@ const styles = StyleSheet.create({
   },
   head: {
     height: 40,
-    backgroundColor: '#f1f8ff',
+    backgroundColor: '#233e90',
+    borderRadius: 4,
+  },
+  headText: {
+    color: 'white',
+    margin: 6,
+    textAlign: 'center',
+    fontSize: 16,
   },
   text: {
     margin: 6,
@@ -88,10 +102,13 @@ const styles = StyleSheet.create({
 
 
   title: {
+    textAlign: 'center',
+    marginTop: 40,
     fontSize: 34,
     fontFamily: "Helvetica",
   },
   startHolder: {
+    marginTop: 20,
     alignItems: "center",
   },
   start: {
@@ -116,7 +133,6 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica",
   },
   container: {
-    flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(35, 62, 144, 0)",
