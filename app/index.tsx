@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons'; // For the trash icon (if using Expo)
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -19,29 +20,31 @@ export default function Index() {
   const buttonTextColor = started ? "white" : "#233e90";
   const tableHead = ['Date', 'Start Time', 'Duration', 'Verified'];
 
-  const onPress = () => {
-    if (!started) {
-      // 🕒 Start tracking
-      setStarted(true);
-      setStartTimestamp(new Date());
-      setTime(0);
-    } else {
-      // 🛑 Stop tracking — record the session
-      setStarted(false);
-      if (startTimestamp) {
-        const endTime = new Date();
-        const duration = formatTime(time);
-
-        const dateStr = startTimestamp.toISOString().split('T')[0]; // YYYY-MM-DD
-        const startTimeStr = startTimestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-        const newEntry = [dateStr, startTimeStr, duration, '❌']; // not verified yet
-        setTableData(prev => [newEntry, ...prev]); // add to top
-      }
-      setStartTimestamp(null);
+  // --- AsyncStorage functions ---
+  const saveTableData = async (data: string[][]) => {
+    try {
+      await AsyncStorage.setItem('@tableData', JSON.stringify(data));
+    } catch (error) {
+      console.error('Failed to save table data', error);
     }
   };
 
+  const loadTableData = async () => {
+    try {
+      const savedData = await AsyncStorage.getItem('@tableData');
+      if (savedData !== null) {
+        setTableData(JSON.parse(savedData));
+      }
+    } catch (error) {
+      console.error('Failed to load table data', error);
+    }
+  };
+
+  useEffect(() => {
+    loadTableData();
+  }, []);
+
+  // --- Timer effect ---
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
@@ -64,6 +67,38 @@ export default function Index() {
     return `${s}s`;
   };
 
+  const onPress = () => {
+    if (!started) {
+      // 🕒 Start tracking
+      setStarted(true);
+      setStartTimestamp(new Date());
+      setTime(0);
+    } else {
+      // 🛑 Stop tracking — record the session
+      setStarted(false);
+      if (startTimestamp) {
+        const endTime = new Date();
+        const duration = formatTime(time);
+
+        const dateStr = startTimestamp.toLocaleDateString('en-US', {
+          month: 'short', // Oct
+          day: 'numeric', // 8
+          year: 'numeric' // 2025
+        });
+        const startTimeStr = startTimestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        const newEntry = [dateStr, startTimeStr, duration, '❌']; // not verified yet
+        setTableData(prev => {
+          const updated = [newEntry, ...prev];
+          saveTableData(updated);
+          return updated;
+        
+        }); // add to top
+      }
+      setStartTimestamp(null);
+    }
+  };
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
     <ScrollView contentContainerStyle={styles.container}>
@@ -82,6 +117,14 @@ export default function Index() {
         <Table>
           <Row data={tableHead} style={styles.head} textStyle={styles.headText} />
           {tableData.map((tableData, index) => {
+            const handleDelete = () => {
+              setTableData(prev => {
+                const updated = prev.filter((_, i) => i !== index);
+                saveTableData(updated);
+                return updated;
+              });
+            };
+
             const renderRightActions = () => (
               <TouchableOpacity onPress={handleDelete}>
                 <View style={styles.deleteContainer}>
@@ -89,10 +132,6 @@ export default function Index() {
                 </View>
               </TouchableOpacity>
             );
-
-            const handleDelete = () => {
-              setTableData(prev => prev.filter((_, i) => i !== index));
-            };
 
             return (
               <Swipeable key={index} renderRightActions={renderRightActions}>
