@@ -124,7 +124,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
-    borderRadius: 4,
     height: '100%',
   },
   tableHeader: {
