@@ -1,27 +1,49 @@
+import { Ionicons } from '@expo/vector-icons'; // For the trash icon (if using Expo)
 import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { Row, Rows, Table } from 'react-native-table-component';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import { Row, Table } from 'react-native-table-component';
 
 export default function Index() {
   const [time, setTime] = useState(0);
   const [started, setStarted] = useState(false);
+  const [startTimestamp, setStartTimestamp] = useState<Date | null>(null); // 🆕 store start time
+  const [tableData, setTableData] = useState([
+    ['2025-10-08', '09:00', '1h 30m', '✅'],
+    ['2025-10-07', '14:15', '45m', '❌'],
+    ['2025-10-06', '17:15', '2h 10m', '❌'],
+  ]);
+
   const buttonBackgroundColor = started ? "#233e90" : "white";
   const buttonTextColor = started ? "white" : "#233e90";
   const tableHead = ['Date', 'Start Time', 'Duration', 'Verified'];
-  const tableData = [
-    ['2025-10-08', '09:00', '1h 30m'],
-    ['2025-10-07', '14:15', '45m'],
-    ['2025-10-06', '17:15', '2h 10m'],
-  ];
 
   const onPress = () => {
     if (!started) {
+      // 🕒 Start tracking
       setStarted(true);
+      setStartTimestamp(new Date());
+      setTime(0);
+    } else {
+      // 🛑 Stop tracking — record the session
+      setStarted(false);
+      if (startTimestamp) {
+        const endTime = new Date();
+        const duration = formatTime(time);
+
+        const dateStr = startTimestamp.toISOString().split('T')[0]; // YYYY-MM-DD
+        const startTimeStr = startTimestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        const newEntry = [dateStr, startTimeStr, duration, '❌']; // not verified yet
+        setTableData(prev => [newEntry, ...prev]); // add to top
+      }
+      setStartTimestamp(null);
     }
   };
 
   useEffect(() => {
-    let interval: number;
+    let interval: NodeJS.Timeout;
 
     if (started) {
       interval = setInterval(() => {
@@ -37,13 +59,16 @@ export default function Index() {
     const h = Math.floor(t / 3600);
     const m = Math.floor((t % 3600) / 60);
     const s = t % 60;
-    return `${h}h ${m}m ${s}s`;
+    if (h > 0) return `${h}h ${m}m ${s}s`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
   };
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <ScrollView contentContainerStyle={styles.container}>
-
       <Text style={styles.title}>Driving Hours Tracker</Text>
+      
       <View style={styles.startHolder}>
         <TouchableOpacity style={[styles.start, { backgroundColor: buttonBackgroundColor, borderColor: buttonTextColor }]} onPress={onPress}>
           <Text style={[styles.startText, { color: buttonTextColor }]}>
@@ -51,20 +76,56 @@ export default function Index() {
           </Text>
         </TouchableOpacity>
       </View>
+
       <Text style={styles.tableHeader}>My Activity</Text>
       <View style={styles.tableContainer}>
-        <Table></Table>
-        <Row data={tableHead} style={styles.head} textStyle={styles.headText} />
-        <Rows data={tableData} textStyle={styles.text} />
+        <Table>
+          <Row data={tableHead} style={styles.head} textStyle={styles.headText} />
+          {tableData.map((tableData, index) => {
+            const renderRightActions = () => (
+              <TouchableOpacity onPress={handleDelete}>
+                <View style={styles.deleteContainer}>
+                  <Ionicons name="trash" size={12} color="white" />
+                </View>
+              </TouchableOpacity>
+            );
+
+            const handleDelete = () => {
+              setTableData(prev => prev.filter((_, i) => i !== index));
+            };
+
+            return (
+              <Swipeable key={index} renderRightActions={renderRightActions}>
+                <Row
+                  data={tableData}
+                  style={[
+                    { backgroundColor: index % 2 === 0 ? "#fff" : '#ecececff' },
+                  ]}
+                  textStyle={styles.text}
+                />
+              </Swipeable>
+            );
+          })}
+        </Table>
+        
       </View>
     <View style={styles.bottomSpacer}></View>
     </ScrollView>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
   bottomSpacer: {
     marginBottom: 5,
+  },
+  deleteContainer: {
+    backgroundColor: 'red',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    borderRadius: 4,
+    height: '100%',
   },
   tableHeader: {
     marginTop: 60,
@@ -73,7 +134,7 @@ const styles = StyleSheet.create({
   },
   tableContainer: {
     marginTop: 15,
-    padding: 16,
+    padding: 8,
     backgroundColor: '#fff',
     width: '90%',
     borderRadius: 8,
@@ -92,12 +153,12 @@ const styles = StyleSheet.create({
     color: 'white',
     margin: 6,
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: 10,
   },
   text: {
     margin: 6,
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: 8,
   },
 
 
