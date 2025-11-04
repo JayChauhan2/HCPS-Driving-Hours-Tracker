@@ -1,125 +1,81 @@
+# Driving Hours Tracker
 
-# Driving Hours Tracker - Henrico County
-
-A simple **Driving Hours Tracker** app built with **React Native** and **Expo**, designed to help Henrico County drivers log and track their driving sessions. This app supports tracking time, storing sessions, and verifying activity, with a clean, user-friendly interface.
-
----
+A React Native mobile application for tracking driving practice hours, designed to help learner drivers log their required 45 hours of practice (including 15 hours of night driving).
 
 ## Features
 
-* **Start/Stop Timer:** Track your driving sessions in real time.
-* **Session Logging:** Automatically records date, start time, and duration.
-* **Night Driving Detection:** Highlights sessions that occur during night hours.
-* **Swipe to Delete:** Easily remove sessions with a swipe gesture.
-* **Persistent Storage:** All session data is saved locally using `AsyncStorage`.
-* **Visual Table:** Displays your driving activity in an organized table.
+- **Start/Stop Timer**: Track driving sessions with a large, easy-to-use circular button
+- **Automatic Night Detection**: Sessions starting after 6:30 PM or before 6:00 AM are automatically marked with a 🌙 icon
+- **Session History**: View all logged driving sessions with date, start time, and duration
+- **Swipe to Delete**: Remove sessions by swiping left on any entry
+- **Progress Tracking**: Real-time display of total hours and night hours completed
+- **PDF Export**: Generate a formatted 45-Hour Driving Log ready for submission to driver education instructors
+- **Persistent Storage**: All data is automatically saved locally using AsyncStorage
 
----
+## Requirements
 
-## Screenshots
+This app tracks the standard driver education requirement of:
+- **45 total hours** of guided driving practice
+- **15 hours** of night driving (after sunset)
 
-*(Add screenshots of the app here if available)*
+## Technologies Used
 
----
+- **React Native** - Mobile framework
+- **Expo** - Development platform
+- **AsyncStorage** - Local data persistence
+- **React Native Gesture Handler** - Swipe-to-delete functionality
+- **Expo Print** - PDF generation
+- **Expo Sharing** - Share/export PDFs
 
 ## Installation
 
-1. **Clone the repository:**
-
+1. Install dependencies:
 ```bash
-git clone <your-repo-url>
-cd <repo-folder>
+npm install @react-native-async-storage/async-storage expo-print expo-sharing @expo/vector-icons react-native-gesture-handler react-native-table-component
 ```
 
-2. **Install dependencies:**
-
-```bash
-npm install
-# or
-yarn install
-```
-
-3. **Start the Expo app:**
-
+2. Run the app:
 ```bash
 npx expo start
 ```
 
-This will launch the Expo developer tools, where you can run the app on an Android/iOS simulator or physical device.
-
----
-
-## Dependencies
-
-This project uses the following key libraries:
-
-* [React Native](https://reactnative.dev/) – framework for building native apps.
-* [Expo](https://expo.dev/) – toolchain for React Native.
-* [AsyncStorage](https://react-native-async-storage.github.io/async-storage/) – local persistent storage.
-* [react-native-gesture-handler](https://docs.swmansion.com/react-native-gesture-handler/) – swipe gestures.
-* [react-native-table-component](https://github.com/Gil2015/react-native-table-component) – display tables easily.
-* [Ionicons](https://ionic.io/ionicons) – icons library.
-
----
-
 ## Usage
 
-1. **Start a Session:** Tap the **Start** button to begin tracking your driving session.
-2. **Stop a Session:** Tap the timer again to stop tracking. The session is automatically logged with:
+1. **Start a Session**: Tap the circular "Start" button to begin tracking
+2. **Stop a Session**: Tap again to stop - the session will be automatically logged
+3. **View History**: Scroll down to see all logged sessions in the "My Activity" table
+4. **Delete a Session**: Swipe left on any entry and tap the trash icon
+5. **Export Hours**: Once you've completed your hours, tap "Done with Hours?" to generate and share a PDF log
 
-   * Date
-   * Start Time
-   * Duration
-   * Verification status (initially ❌)
-3. **Night Driving Indicator:** Sessions starting between **6:30 PM and 6:00 AM** are flagged with a moon symbol 🌙.
-4. **Delete Session:** Swipe left on a session to reveal a trash icon and delete it.
-5. **View History:** Your driving sessions are displayed in the table, with the most recent sessions at the top.
+## PDF Export Format
 
----
+The exported PDF includes:
+- Numbered session list with dates and durations
+- Day/Night classification for each session
+- Space for notes on driving conditions
+- Total hours summary (overall and night hours)
+- Parent/guardian signature section
+- DMV license number field
+- Date field
+
+Perfect for submission to driver education instructors or DMV requirements.
 
 ## Code Structure
 
-* `Index.tsx` – main component containing the timer, table, and AsyncStorage logic.
-* **State Hooks:**
-
-  * `time` – current session duration in seconds.
-  * `started` – boolean flag for whether the timer is running.
-  * `startTimestamp` – stores the start time of the current session.
-  * `tableData` – array storing all session records.
-* **AsyncStorage:**
-
-  * `saveTableData` – saves session data locally.
-  * `loadTableData` – loads session data on app startup.
-* **Swipeable Rows:** Each table row supports swipe-to-delete functionality.
-
----
-
-## Styling
-
-* Custom styling with `StyleSheet` for buttons, table, and layout.
-* Start button is large and circular for easy interaction.
-* Alternating table row colors for readability.
-* Shadows and elevation for modern UI feel.
-
----
-
-## Contributing
-
-Contributions are welcome! You can:
-
-* Report bugs or request features via Issues.
-* Submit pull requests for improvements or additional features.
-
----
-
-## License
-
-This project is open-source under the MIT License.
-
----
+This is a single-file React Native application (`Index.tsx`) containing:
+- Timer management with React hooks
+- AsyncStorage integration for data persistence
+- Table rendering with swipeable rows
+- Modal for export confirmation
+- HTML template for PDF generation
 
 ## Notes
 
-* Currently, verification status (`✅`/`❌`) is manual and not linked to any official system.
-* App is optimized for mobile use with Expo.
+- Sessions are sorted with newest entries at the top
+- Night driving is automatically detected based on start time (after 6:30 PM or before 6:00 AM)
+- All data persists between app sessions
+- The app uses a clean, minimal UI with a blue and white color scheme
 
+## License
+
+Free to use for personal driving practice tracking.
