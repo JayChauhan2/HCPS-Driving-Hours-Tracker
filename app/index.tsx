@@ -10,15 +10,11 @@ export default function Index() {
   const [time, setTime] = useState(0);
   const [started, setStarted] = useState(false);
   const [startTimestamp, setStartTimestamp] = useState<Date | null>(null); // 🆕 store start time
-  const [tableData, setTableData] = useState([
-    ['2025-10-08', '09:00', '1h 30m', '✅'],
-    ['2025-10-07', '14:15', '45m', '❌'],
-    ['2025-10-06', '17:15', '2h 10m', '❌'],
-  ]);
+  const [tableData, setTableData] = useState<string[][]>([]);
 
   const buttonBackgroundColor = started ? "#233e90" : "white";
   const buttonTextColor = started ? "white" : "#233e90";
-  const tableHead = ['Date', 'Start Time', 'Duration', 'Verified'];
+  const tableHead = ['Date', 'Start Time', 'Duration'];
 
   // --- AsyncStorage functions ---
   const saveTableData = async (data: string[][]) => {
@@ -67,6 +63,33 @@ export default function Index() {
     return `${s}s`;
   };
 
+  // --- Calculate total night hours ---
+  const getTotalNightTime = () => {
+    let totalSeconds = 0;
+
+    tableData.forEach(row => {
+      const durationStr = row[2]; // duration column
+      if (durationStr.includes('🌙')) {
+        const cleanStr = durationStr.replace('🌙', '').trim();
+        const hMatch = cleanStr.match(/(\d+)h/);
+        const mMatch = cleanStr.match(/(\d+)m/);
+        const sMatch = cleanStr.match(/(\d+)s/);
+
+        const h = hMatch ? parseInt(hMatch[1], 10) : 0;
+        const m = mMatch ? parseInt(mMatch[1], 10) : 0;
+        const s = sMatch ? parseInt(sMatch[1], 10) : 0;
+
+        totalSeconds += h * 3600 + m * 60 + s;
+      }
+    });
+
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${hours}h ${minutes}m ${seconds}s`;
+  };
+
   const onPress = () => {
     if (!started) {
       // 🕒 Start tracking
@@ -93,7 +116,7 @@ export default function Index() {
         });
         const startTimeStr = startTimestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-        const newEntry = [dateStr, startTimeStr, duration, '❌']; // not verified yet
+        const newEntry = [dateStr, startTimeStr, duration]; // not verified yet
         setTableData(prev => {
           const updated = [newEntry, ...prev];
           saveTableData(updated);
@@ -119,6 +142,7 @@ export default function Index() {
       </View>
 
       <Text style={styles.tableHeader}>My Activity</Text>
+      <Text style={{paddingTop: 6, fontSize: 10, color: 'lightgrey', fontStyle: 'italic'}}>My total night hours: {getTotalNightTime()} (15h required) </Text>
       <View style={styles.tableContainer}>
         <Table>
           <Row data={tableHead} style={styles.head} textStyle={styles.headText} />
