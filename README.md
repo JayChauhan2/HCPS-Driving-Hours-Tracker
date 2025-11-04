@@ -1,6 +1,3 @@
-Sure! Here's a professional and detailed README for your **Driving Hours Tracker** Expo app:
-
----
 
 # Driving Hours Tracker - Henrico County
 
