@@ -1,16 +1,17 @@
 import { Ionicons } from '@expo/vector-icons'; // For the trash icon (if using Expo)
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { Row, Table } from 'react-native-table-component';
-
+Modal
 export default function Index() {
   const [time, setTime] = useState(0);
   const [started, setStarted] = useState(false);
   const [startTimestamp, setStartTimestamp] = useState<Date | null>(null); // 🆕 store start time
   const [tableData, setTableData] = useState<string[][]>([]);
+  const [modalVisible, setModalVisible] = useState(false); // ✅ modal state
 
   const buttonBackgroundColor = started ? "#233e90" : "white";
   const buttonTextColor = started ? "white" : "#233e90";
@@ -61,6 +62,30 @@ export default function Index() {
     if (h > 0) return `${h}h ${m}m ${s}s`;
     if (m > 0) return `${m}m ${s}s`;
     return `${s}s`;
+  };
+
+  const getTotalHours = () => {
+    let totalSeconds = 0;
+
+    tableData.forEach(row => {
+      const durationStr = row[2]; // duration column
+      const cleanStr = durationStr.replace('🌙', '').trim();
+      const hMatch = cleanStr.match(/(\d+)h/);
+      const mMatch = cleanStr.match(/(\d+)m/);
+      const sMatch = cleanStr.match(/(\d+)s/);
+
+      const h = hMatch ? parseInt(hMatch[1], 10) : 0;
+      const m = mMatch ? parseInt(mMatch[1], 10) : 0;
+      const s = sMatch ? parseInt(sMatch[1], 10) : 0;
+
+      totalSeconds += h * 3600 + m * 60 + s;
+    });
+
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${hours}h ${minutes}m ${seconds}s`;
   };
 
   // --- Calculate total night hours ---
@@ -143,7 +168,14 @@ export default function Index() {
       </View>
 
       <Text style={styles.tableHeader}>My Activity</Text>
-      <Text style={{paddingTop: 6, fontSize: 10, color: 'lightgrey', fontStyle: 'italic'}}>My total night hours: {getTotalNightTime()} (15h required) </Text>
+      <View style={{ display: 'flex', width: '100%', alignItems: 'center', marginVertical: 10 }}>
+        <TouchableOpacity style={styles.doneButton} onPress={() => setModalVisible(true)}>
+          <Text style={styles.doneButtonText}>Done with Hours?</Text>
+        </TouchableOpacity>
+      </View>
+      
+      <Text style={{paddingTop: 6, fontSize: 10, color: 'lightgrey', fontStyle: 'italic'}}>My total hours: {getTotalHours()} (45h required) </Text>
+      <Text style={{paddingTop: 6, fontSize: 10, color: 'lightgrey', fontStyle: 'italic'}}>My total night 🌙 hours: {getTotalNightTime()} (15h required) </Text>
       <View style={styles.tableContainer}>
         <Table>
           <Row data={tableHead} style={styles.head} textStyle={styles.headText} />
@@ -179,6 +211,31 @@ export default function Index() {
         </Table>
         
       </View>
+
+      
+      {/* --- Modal --- */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContainer}>
+            <Text style={{ fontSize: 18, marginBottom: 20 }}>This is a blank modal</Text>
+            
+            {/* Buttons in a row */}
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+              </View>
+            </View>
+        </View>
+      </Modal>
     <View style={styles.bottomSpacer}></View>
     </ScrollView>
     </GestureHandlerRootView>
@@ -189,6 +246,43 @@ const styles = StyleSheet.create({
   bottomSpacer: {
     marginBottom: 5,
   },
+  doneButton: {
+    backgroundColor: '#233e90',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+
+  doneButtonText: {
+    color: 'white',
+    fontSize: 8,
+  },
+  modalBackground: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalButtonRow: {
+    flexDirection: 'row',       // align buttons horizontally
+    justifyContent: 'space-around', // space evenly
+    width: '60%',              // take full width of modal container
+  },
+  modalContainer: {
+    width: '80%',
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  closeButton: {
+    marginTop: 20,
+    backgroundColor: '#233e90',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  closeButtonText: { color: 'white', fontSize: 14 },
   deleteContainer: {
     backgroundColor: 'red',
     justifyContent: 'center',
