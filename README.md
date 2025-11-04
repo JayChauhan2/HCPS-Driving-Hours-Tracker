@@ -1,50 +1,133 @@
-# Welcome to your Expo app 👋
+Sure! Here's a professional and detailed README for your **Driving Hours Tracker** Expo app:
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+---
 
-## Get started
+# Driving Hours Tracker - Henrico County
 
-1. Install dependencies
+A simple **Driving Hours Tracker** app built with **React Native** and **Expo**, designed to help Henrico County drivers log and track their driving sessions. This app supports tracking time, storing sessions, and verifying activity, with a clean, user-friendly interface.
 
-   ```bash
-   npm install
-   ```
+---
 
-2. Start the app
+## Features
 
-   ```bash
-   npx expo start
-   ```
+* **Start/Stop Timer:** Track your driving sessions in real time.
+* **Session Logging:** Automatically records date, start time, and duration.
+* **Night Driving Detection:** Highlights sessions that occur during night hours.
+* **Swipe to Delete:** Easily remove sessions with a swipe gesture.
+* **Persistent Storage:** All session data is saved locally using `AsyncStorage`.
+* **Visual Table:** Displays your driving activity in an organized table.
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Screenshots
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+*(Add screenshots of the app here if available)*
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## Installation
+
+1. **Clone the repository:**
 
 ```bash
-npm run reset-project
+git clone <your-repo-url>
+cd <repo-folder>
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. **Install dependencies:**
 
-## Learn more
+```bash
+npm install
+# or
+yarn install
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+3. **Start the Expo app:**
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npx expo start
+```
 
-## Join the community
+This will launch the Expo developer tools, where you can run the app on an Android/iOS simulator or physical device.
 
-Join our community of developers creating universal apps.
+---
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Dependencies
+
+This project uses the following key libraries:
+
+* [React Native](https://reactnative.dev/) – framework for building native apps.
+* [Expo](https://expo.dev/) – toolchain for React Native.
+* [AsyncStorage](https://react-native-async-storage.github.io/async-storage/) – local persistent storage.
+* [react-native-gesture-handler](https://docs.swmansion.com/react-native-gesture-handler/) – swipe gestures.
+* [react-native-table-component](https://github.com/Gil2015/react-native-table-component) – display tables easily.
+* [Ionicons](https://ionic.io/ionicons) – icons library.
+
+---
+
+## Usage
+
+1. **Start a Session:** Tap the **Start** button to begin tracking your driving session.
+2. **Stop a Session:** Tap the timer again to stop tracking. The session is automatically logged with:
+
+   * Date
+   * Start Time
+   * Duration
+   * Verification status (initially ❌)
+3. **Night Driving Indicator:** Sessions starting between **6:30 PM and 6:00 AM** are flagged with a moon symbol 🌙.
+4. **Delete Session:** Swipe left on a session to reveal a trash icon and delete it.
+5. **View History:** Your driving sessions are displayed in the table, with the most recent sessions at the top.
+
+---
+
+## Code Structure
+
+* `Index.tsx` – main component containing the timer, table, and AsyncStorage logic.
+* **State Hooks:**
+
+  * `time` – current session duration in seconds.
+  * `started` – boolean flag for whether the timer is running.
+  * `startTimestamp` – stores the start time of the current session.
+  * `tableData` – array storing all session records.
+* **AsyncStorage:**
+
+  * `saveTableData` – saves session data locally.
+  * `loadTableData` – loads session data on app startup.
+* **Swipeable Rows:** Each table row supports swipe-to-delete functionality.
+
+---
+
+## Styling
+
+* Custom styling with `StyleSheet` for buttons, table, and layout.
+* Start button is large and circular for easy interaction.
+* Alternating table row colors for readability.
+* Shadows and elevation for modern UI feel.
+
+---
+
+## Contributing
+
+Contributions are welcome! You can:
+
+* Report bugs or request features via Issues.
+* Submit pull requests for improvements or additional features.
+
+---
+
+## License
+
+This project is open-source under the MIT License.
+
+---
+
+## Notes
+
+* Currently, verification status (`✅`/`❌`) is manual and not linked to any official system.
+* App is optimized for mobile use with Expo.
+
+---
+
+If you want, I can also create a **shorter, “app store style” README** version suitable for GitHub that emphasizes usage and screenshots. It will look cleaner for casual users.
+
+Do you want me to do that as well?
