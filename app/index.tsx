@@ -1,11 +1,13 @@
 import { Ionicons } from '@expo/vector-icons'; // For the trash icon (if using Expo)
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing'; // ✅ add this import at the top
 import React, { useEffect, useState } from "react";
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { Row, Table } from 'react-native-table-component';
-Modal
+
 export default function Index() {
   const [time, setTime] = useState(0);
   const [started, setStarted] = useState(false);
@@ -120,7 +122,7 @@ export default function Index() {
       // 🕒 Start tracking
       setStarted(true);
       setStartTimestamp(new Date());
-      setTime(0);
+      setTime(600); // test time HERE
     } else {
       // 🛑 Stop tracking — record the session
       setStarted(false);
@@ -153,6 +155,106 @@ export default function Index() {
     }
   };
 
+  const exportHours = async () => {
+
+    // Build table rows dynamically
+    const tableRows = tableData.map((row, index) => {
+      const [date, startTime, duration] = row;
+      const isNight = duration.includes('🌙') ? 'Night 🌙' : 'Day';
+      const cleanDuration = duration.replace('🌙', '').trim();
+      return `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${date}</td>
+          <td>${cleanDuration}</td>
+          <td>${isNight}</td>
+          <td></td>
+        </tr>
+      `;
+    }).join('');
+
+    const totalTime = getTotalHours();
+    const totalNight = getTotalNightTime();
+
+    const html = `
+      <html>
+      <head>
+          <style>
+            table {
+              width: 80%;
+              margin: 20px auto;
+              border-collapse: collapse;
+            }
+            th, td {
+              border: 1px solid #000;
+              padding: 2px;
+              text-align: center;
+            }
+            * {
+              text-align: center;
+            }
+            h3 {
+              font-weight: normal;
+            }
+            #bottom {
+              width: 80%;
+              display: flex;
+              flex-direction: row;
+              justify-content: space-evenly;
+              justify-self: center;
+              font-size: 0.9rem;
+            }
+            #bottom > div {
+              flex: 1;
+              margin: 0 10px; /* Add horizontal spacing */
+            }
+          </style>
+      </head>
+          <body>
+          <h2 style="text-align: center;">This Driving Log should be completed and submitted to the student's in-car driver education teacher.</h1>
+          <h1 style="text-align: center;">45-Hour Driving Log</h1>
+          <table>
+            <tr>
+              <th>Session</th>
+              <th style="width: 8rem;">Date</th>
+              <th>Total Time Driven</th>
+              <th>Day/Night</th>
+              <th>Notes on driving conditions (if applicable)</th>
+            </tr>
+            ${tableRows}
+            <tr>
+              <td colspan="2" style="text-align:right"><b>Total Time</b></td>
+              <td colspan="3"><b>${totalTime} (Night: ${totalNight})</b></td>
+            </tr>
+          </table>
+          <br>
+          <h3>I certify that _______________________________________ has completed 45 hours of guided practice, 15 of which were after sunset.</h3>
+          <br>
+          <div id="bottom">
+              <div>
+                  <h3>____________________________</h3>
+                  <h3>Parent/Guardian's Signature</h3>
+              </div>
+              
+              <div>
+                  <h3>___________________________________</h3>
+                  <h3>DMV Driver License OR ID Card No.</h3>
+              </div>
+              
+              <div>
+                  <h3>_________________</h3>
+                  <h3>Date</h3>
+              </div>
+          </div>
+      </body>
+      </html>
+    `;
+    
+    const { uri } = await Print.printToFileAsync({ html });
+    await Sharing.shareAsync(uri); // ✅ correct sharing method
+    setModalVisible(false)
+  };
+
   return (
     <GestureHandlerRootView style={{ flex: 1, marginTop: 40}}>
     
@@ -168,14 +270,15 @@ export default function Index() {
       </View>
 
       <Text style={styles.tableHeader}>My Activity</Text>
+      
+      <Text style={{paddingTop: 6, fontSize: 10, color: 'lightgrey', fontStyle: 'italic'}}>My total hours: {getTotalHours()} (45h required) </Text>
+      <Text style={{paddingTop: 6, fontSize: 10, color: 'lightgrey', fontStyle: 'italic'}}>My total night 🌙 hours: {getTotalNightTime()} (15h required) </Text>
+      
       <View style={{ display: 'flex', width: '100%', alignItems: 'center', marginVertical: 10 }}>
         <TouchableOpacity style={styles.doneButton} onPress={() => setModalVisible(true)}>
           <Text style={styles.doneButtonText}>Done with Hours?</Text>
         </TouchableOpacity>
       </View>
-      
-      <Text style={{paddingTop: 6, fontSize: 10, color: 'lightgrey', fontStyle: 'italic'}}>My total hours: {getTotalHours()} (45h required) </Text>
-      <Text style={{paddingTop: 6, fontSize: 10, color: 'lightgrey', fontStyle: 'italic'}}>My total night 🌙 hours: {getTotalNightTime()} (15h required) </Text>
       <View style={styles.tableContainer}>
         <Table>
           <Row data={tableHead} style={styles.head} textStyle={styles.headText} />
@@ -222,15 +325,15 @@ export default function Index() {
       >
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
-            <Text style={{ fontSize: 18, marginBottom: 20 }}>This is a blank modal</Text>
+            <Text style={{ fontSize: 18 }}>Congratulations! Begin exporting your hours to a PDF and get them signed.</Text>
             
             {/* Buttons in a row */}
             <View style={styles.modalButtonRow}>
               <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
                 <Text style={styles.closeButtonText}>Close</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
-                <Text style={styles.closeButtonText}>Close</Text>
+              <TouchableOpacity style={styles.exportButton} onPress={() => exportHours()}>
+                <Text style={styles.exportButtonText}>Export</Text>
               </TouchableOpacity>
               </View>
             </View>
@@ -266,7 +369,7 @@ const styles = StyleSheet.create({
   modalButtonRow: {
     flexDirection: 'row',       // align buttons horizontally
     justifyContent: 'space-around', // space evenly
-    width: '60%',              // take full width of modal container
+    width: '80%',              // take full width of modal container
   },
   modalContainer: {
     width: '80%',
@@ -277,12 +380,22 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     marginTop: 20,
+    backgroundColor: 'white',
+    borderColor: "#233e90",
+    borderWidth: 2,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  closeButtonText: { color: '#233e90', fontSize: 14 },
+  exportButton: {
+    marginTop: 20,
     backgroundColor: '#233e90',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
   },
-  closeButtonText: { color: 'white', fontSize: 14 },
+  exportButtonText: { color: 'white', fontSize: 14 },
   deleteContainer: {
     backgroundColor: 'red',
     justifyContent: 'center',
@@ -296,7 +409,6 @@ const styles = StyleSheet.create({
     fontSize: 21,
   },
   tableContainer: {
-    marginTop: 15,
     padding: 8,
     backgroundColor: '#fff',
     width: '90%',
@@ -360,7 +472,6 @@ const styles = StyleSheet.create({
   container: {
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(35, 62, 144, 0)",
 
   },
 
