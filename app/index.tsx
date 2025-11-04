@@ -122,7 +122,7 @@ export default function Index() {
       // 🕒 Start tracking
       setStarted(true);
       setStartTimestamp(new Date());
-      setTime(600); // test time HERE
+      setTime(0); // test time HERE
     } else {
       // 🛑 Stop tracking — record the session
       setStarted(false);
