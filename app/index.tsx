@@ -473,7 +473,7 @@ export default function Index() {
             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
               {/* Hours Input */}
               <View style={{ flex: 1, marginRight: 10 }}>
-                <Text>Hours</Text>
+                <Text>Duration Hrs</Text>
                 <TextInput
                   value={hours.toString()}
                   onChangeText={(text) => { const cleaned = text.replace(/[^0-9]/g, ""); setHours(cleaned ? Number(cleaned) : 0); }}
@@ -490,7 +490,7 @@ export default function Index() {
 
               {/* Minutes Input */}
               <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text>Minutes</Text>
+                <Text>Duration Mins</Text>
                 <TextInput
                   value={minutes.toString()}
                   onChangeText={(text) => { const cleaned = text.replace(/[^0-9]/g, ""); setMinutes(cleaned ? Number(cleaned) : 0); }}
