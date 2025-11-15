@@ -1,8 +1,10 @@
 import { Ionicons } from '@expo/vector-icons'; // For the trash icon (if using Expo)
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing'; // ✅ add this import at the top
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
@@ -14,6 +16,16 @@ export default function Index() {
   const [startTimestamp, setStartTimestamp] = useState<Date | null>(null); // 🆕 store start time
   const [tableData, setTableData] = useState<string[][]>([]);
   const [modalVisible, setModalVisible] = useState(false); // ✅ modal state
+  // --- Manual Add Modal ---
+  const [manualVisible, setManualVisible] = useState(false);
+  const [manualDate, setManualDate] = useState(new Date());
+  const [manualStartTime, setManualStartTime] = useState(new Date());
+  const [manualDuration, setManualDuration] = useState(""); // in minutes or HH:MM
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [hours, setHours] = useState(0);
+  const [minutes, setMinutes] = useState(0);
+
 
   const buttonBackgroundColor = started ? "#233e90" : "white";
   const buttonTextColor = started ? "white" : "#233e90";
@@ -60,20 +72,6 @@ export default function Index() {
     };
     restoreTimer();
   }, []);
-  
-
-  // --- Timer effect ---
-  // useEffect(() => {
-  //   let interval: NodeJS.Timeout;
-
-  //   if (started) {
-  //     interval = setInterval(() => {
-  //       setTime(prev => prev + 1);
-  //     }, 1000);
-  //   }
-
-  //   return () => clearInterval(interval);
-  // }, [started]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -150,44 +148,6 @@ export default function Index() {
 
     return `${hours}h ${minutes}m ${seconds}s`;
   };
-
-  // const onPress = () => {
-  //   if (!started) {
-  //     // 🕒 Start tracking
-  //     setStarted(true);
-  //     setStartTimestamp(new Date());
-  //     setTime(0); // test time HERE
-  //   } else {
-  //     // 🛑 Stop tracking — record the session
-  //     setStarted(false);
-  //     if (startTimestamp) {
-  //       const duration = formatTime(time);
-
-  //       // 🌙 Night driving check
-  //       const startHour = startTimestamp.getHours(); // 0-23
-  //       const startMinute = startTimestamp.getMinutes();
-  //       if (startHour > 18 || startHour < 6 || (startHour === 18 && startMinute >= 30)) {
-  //         duration += ' 🌙';
-  //       }
-
-  //       const dateStr = startTimestamp.toLocaleDateString('en-US', {
-  //         month: 'short', // Oct
-  //         day: 'numeric', // 8
-  //         year: 'numeric' // 2025
-  //       });
-  //       const startTimeStr = startTimestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-  //       const newEntry = [dateStr, startTimeStr, duration]; // not verified yet
-  //       setTableData(prev => {
-  //         const updated = [newEntry, ...prev];
-  //         saveTableData(updated);
-  //         return updated;
-        
-  //       }); // add to top
-  //     }
-  //     setStartTimestamp(null);
-  //   }
-  // };
 
   const onPress = async () => {
     if (!started) {
@@ -343,6 +303,51 @@ export default function Index() {
     setModalVisible(false)
   };
 
+  /////////////////
+  const handleManualAdd = () => {
+    if (!manualDuration) return;
+
+    const durationMinutes = parseInt(manualDuration, 10);
+    if (isNaN(durationMinutes)) return;
+
+    // Build duration string
+    const h = Math.floor(durationMinutes / 60);
+    const m = durationMinutes % 60;
+    let duration = "";
+    if (h > 0) duration += `${h}h `;
+    duration += `${m}m`;
+
+    // 🌙 Night check
+    const hr = manualStartTime.getHours();
+    const min = manualStartTime.getMinutes();
+    if (hr > 18 || hr < 6 || (hr === 18 && min >= 30)) {
+      duration += " 🌙";
+    }
+
+    const dateStr = manualDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+
+    const startTimeStr = manualStartTime.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const newEntry = [dateStr, startTimeStr, duration];
+
+    setTableData(prev => {
+      const updated = [newEntry, ...prev];
+      saveTableData(updated);
+      return updated;
+    });
+
+    setManualVisible(false);
+    setManualDuration("");
+  };
+
+
   return (
     <GestureHandlerRootView style={{ flex: 1, marginTop: 40}}>
     
@@ -362,7 +367,10 @@ export default function Index() {
       <Text style={{paddingTop: 6, fontSize: 10, color: 'lightgrey', fontStyle: 'italic'}}>My total hours: {getTotalHours()} (45h required) </Text>
       <Text style={{paddingTop: 6, fontSize: 10, color: 'lightgrey', fontStyle: 'italic'}}>My total night 🌙 hours: {getTotalNightTime()} (15h required) </Text>
       
-      <View style={{ display: 'flex', width: '100%', alignItems: 'center', marginVertical: 10 }}>
+      <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', width: '70%', alignItems: 'center', marginVertical: 10 }}>
+        <TouchableOpacity style={styles.manualButton} onPress={() => setManualVisible(true)}>
+          <Text style={styles.manualButtonText}>Manual Add</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.doneButton} onPress={() => setModalVisible(true)}>
           <Text style={styles.doneButtonText}>Done with Hours?</Text>
         </TouchableOpacity>
@@ -427,6 +435,92 @@ export default function Index() {
             </View>
         </View>
       </Modal>
+      {/* --- Manual Add Modal --- */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={manualVisible}
+        onRequestClose={() => setManualVisible(false)}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContainer}>
+
+            <Text style={{ fontSize: 18, marginBottom: 10, fontWeight: 'bold' }}>Add Driving Session</Text>
+
+            {/* DATE PICKER */}
+            <Text style={{ fontSize: 14, marginTop: 10 }}>Date</Text>
+            <DateTimePicker
+              mode="date"
+              display="spinner"   // iOS wheel style
+              value={manualDate}
+              onChange={(e, d) => {
+                if (d) setManualDate(d);
+              }}
+            />
+
+            {/* START TIME PICKER */}
+            <Text style={{ fontSize: 14, marginTop: 10 }}>Start Time</Text>
+            <DateTimePicker
+              mode="time"
+              display="spinner"   // wheel style
+              value={manualStartTime}
+              onChange={(e, d) => {
+                if (d) setManualStartTime(d);
+              }}
+            />
+
+            {/* DURATION INPUT */}
+            {/* Wheel pickers */}
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+              {/* Hours Picker */}
+              <View style={{ flex: 1 }}>
+                <Text>Hours</Text>
+                <Picker
+                  selectedValue={hours}
+                  onValueChange={(value) => setHours(value)}
+                >
+                  {Array.from({ length: 24 }, (_, i) => (
+                    <Picker.Item key={i} label={`${i}`} value={i} />
+                  ))}
+                </Picker>
+              </View>
+
+              {/* Minutes Picker */}
+              <View style={{ flex: 1 }}>
+                <Text>Minutes</Text>
+                <Picker
+                  selectedValue={minutes}
+                  onValueChange={(value) => setMinutes(value)}
+                >
+                  {Array.from({ length: 60 }, (_, i) => (
+                    <Picker.Item key={i} label={`${i}`} value={i} />
+                  ))}
+                </Picker>
+              </View>
+            </View>
+
+            {/* Optional: display selected duration */}
+            <Text style={{ marginTop: 10 }}>
+              Selected Duration: {hours}h {minutes}m
+            </Text>
+          
+
+
+            {/* BUTTONS */}
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity style={styles.closeButton} onPress={() => setManualVisible(false)}>
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.exportButton} onPress={handleManualAdd}>
+                <Text style={styles.exportButtonText}>Confirm</Text>
+              </TouchableOpacity>
+            </View>
+
+          </View>
+        </View>
+      </Modal>
+
     <View style={styles.bottomSpacer}></View>
     </ScrollView>
     </GestureHandlerRootView>
@@ -438,7 +532,16 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   doneButton: {
+    borderColor: '#233e90',
+    borderWidth: 2,
     backgroundColor: '#233e90',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  manualButton: {
+    borderColor: '#233e90',
+    borderWidth: 2,
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
@@ -446,6 +549,11 @@ const styles = StyleSheet.create({
 
   doneButtonText: {
     color: 'white',
+    fontSize: 8,
+  },
+
+  manualButtonText: {
+    color: '#233e90',
     fontSize: 8,
   },
   modalBackground: {

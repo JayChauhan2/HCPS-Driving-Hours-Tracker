@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "HCPS Driving Tracker",
-    "slug": "HCPS-Driving-Tracker",
+    "name": "VA Drive45",
+    "slug": "VA-Drive45",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/HCPSDrivingHoursTrackerIcon.png",
